@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Family Expenses</title>
+<style>
+:root{color-scheme:light;--bg:#ffffff;--card:#fff;--ink:#2b1a10;--mute:#7a5c48;--line:#f3d9c4;--dad:#7c2d12;--me:#ea580c;--btn:#c2410c;--btnink:#fff;--danger:#b42318;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:520px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0 12px;color:var(--btn)}
+.card{box-shadow:0 1px 0 var(--line);background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sum div{border-radius:12px;padding:10px 12px;border:2px solid var(--line)}
+.sum small{display:block;color:var(--mute);font-size:15px}
+.sum b{font-size:22px}
+.total{grid-column:1/3}
+.total b{font-size:30px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chip{flex:1 1 auto;min-height:52px;padding:10px 14px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600}
+.chip[aria-pressed="true"]{border-color:var(--btn);background:var(--btn);color:var(--btnink)}
+.who .chip{font-size:20px}
+label{display:block;font-weight:600;margin-top:12px}
+input{width:100%;min-height:56px;padding:10px 14px;margin-top:6px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font:inherit}
+#amt{font-size:32px;font-weight:700}
+input:focus-visible,button:focus-visible{outline:3px solid var(--dad);outline-offset:2px}
+.add{width:100%;min-height:60px;margin-top:16px;border:0;border-radius:16px;background:var(--btn);color:var(--btnink);font:inherit;font-size:21px;font-weight:700}
+.err{color:var(--danger);min-height:22px;margin:8px 0 0;font-size:16px}
+.item{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.item:first-of-type{border-top:0}
+.dot{width:12px;height:12px;border-radius:50%;flex:none}
+.info{flex:1;min-width:0}
+.info span{display:block;color:var(--mute);font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.amtv{font-weight:700;white-space:nowrap}
+.del{min-width:48px;min-height:48px;border:2px solid var(--line);border-radius:12px;background:none;color:var(--danger);font:inherit;font-size:20px}
+.empty{color:var(--mute);margin:6px 0}
+.tools{display:flex;justify-content:space-between;align-items:center}
+.link{background:none;border:0;color:var(--mute);font:inherit;font-size:16px;text-decoration:underline;min-height:44px}
+.login{max-width:520px;margin:0 auto;padding:24px 16px}
+.login h1{font-size:26px}
+.pin{letter-spacing:12px;text-align:center;font-size:32px;font-weight:700}
+.msg{color:var(--mute);margin:6px 0 0;font-size:16px}
+.hide{display:none!important}
+.topbar{display:flex;justify-content:space-between;align-items:center}
+.sum div.biz{grid-column:1/3;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border:0;padding:0}
+.biz div b{font-size:19px}
+.ico{width:36px;display:inline-flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.ico.sm{width:auto;font-size:20px;margin-right:8px;vertical-align:middle}
+.bar{height:8px;border-radius:4px;background:var(--line);margin-top:6px}
+.bar i{display:block;height:100%;border-radius:4px;background:var(--btn)}
+.cr{padding:10px 0;border-top:1px solid var(--line)}
+.cr .l{display:flex;justify-content:space-between;gap:10px}
+.gh{display:flex;justify-content:space-between;margin-top:18px;font-weight:700;color:var(--btn)}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0}
+.nav .chip{flex:none;min-width:56px;font-size:24px}
+.nav .chip:disabled{opacity:.35}
+#sumcard{cursor:pointer}
+.row:empty{display:none}
+</style>
+</head>
+<body>
+<div class="login" id="login">
+  <h1>Family expenses</h1>
+  <section class="card">
+    <b>Who is this?</b>
+    <div class="row who" id="lwho"></div>
+    <p class="err" id="uerr" role="alert" style="margin:0"></p>
+    <button class="link" id="adduser" style="font-size:18px">➕ Add user</button>
+    <div id="pinbox" class="hide">
+      <label for="pin" id="pinlabel">Enter your 4-digit PIN</label>
+      <input id="pin" class="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
+      <input id="pin2" class="pin hide" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" aria-label="Confirm PIN">
+      <p class="err" id="lerr" role="alert"></p>
+      <button class="add" id="go">Log in</button>
+      <button class="link" id="forgot">Forgot PIN?</button>
+    </div>
+  </section>
+</div>
+<main id="app" class="hide">
+<div class="topbar"><h1>Family expenses</h1><button class="link" id="out">Log out</button></div>
+
+<section class="card" id="sumcard" role="button" tabindex="0" aria-label="This month. Tap for category details">
+  <div class="sum">
+    <div class="total"><small id="mname">This month</small><b id="tAll">₹0</b></div>
+    <div style="border-color:var(--me)"><small>Personal</small><b id="tP">₹0</b></div>
+    <div style="border-color:var(--dad)"><small>Business ›</small><b id="tB">₹0</b></div>
+  </div>
+  <p class="msg" style="margin:10px 0 0">Tap to see category-wise details ›</p>
+</section>
+
+<section class="card" aria-label="Add expense">
+  <b id="as">Adding as Yunoos</b>
+  <div id="step1">
+    <label for="amt">How much did you spend? (₹)</label>
+    <input id="amt" type="number" inputmode="decimal" min="0" placeholder="0">
+    <p class="err" id="err" role="alert"></p>
+    <button class="add" id="next" style="margin-top:4px">Add expense</button>
+  </div>
+  <div id="step2" class="hide">
+    <p style="font-size:30px;font-weight:700;margin:12px 0 0" id="amtshow">₹0</p>
+    <b id="wq" style="display:block;margin-top:6px">What was it for?</b>
+    <div class="row" id="kinds"><button class="chip" data-k="Personal" aria-pressed="true">Personal</button><button class="chip" data-k="Business" aria-pressed="false">Business</button></div>
+    <div class="hide" id="bizwrap"><b>Which business?</b><div class="row" id="bizs"></div></div>
+    <b style="display:block;margin-top:14px">Reason</b>
+    <div class="row" id="cats"></div>
+    <label for="note">Note (optional)</label>
+    <input id="note" type="text" placeholder="e.g. vegetables, electricity bill">
+    <p class="err" id="err2" role="alert"></p>
+    <button class="add" id="add">Save expense</button>
+    <button class="link" id="back">Change amount</button>
+  </div>
+</section>
+
+<section class="card" aria-label="Recent expenses">
+  <div class="tools"><b>Recent</b></div>
+  <div id="fltwrap"><div class="row" id="flt"></div><div class="row" id="flt2"></div><div class="row" id="flt3"></div></div>
+  <div id="list"></div>
+</section>
+</main>
+
+<main id="mview" class="hide">
+  <div class="topbar"><h1 id="vh">Month details</h1><button class="link" id="vback">‹ Back</button></div>
+  <div class="nav"><button class="chip" id="vprev" aria-label="Previous month">‹</button><b id="vtitle" style="font-size:20px"></b><button class="chip" id="vnext" aria-label="Next month">›</button></div>
+  <section class="card"><small class="msg" style="margin:0">Total spent</small><div style="font-size:30px;font-weight:700" id="vtotal">₹0</div></section>
+  <section class="card"><div id="vbody"></div></section>
+</main>
+<div id="modal" class="hide" style="position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50">
+  <div class="card" style="width:100%;max-width:360px;margin:0">
+    <p id="mmsg" style="margin:0 0 8px;font-weight:600"></p>
+    <input id="minp" class="pin hide" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="PIN">
+    <div class="row"><button class="chip" id="mno">Cancel</button><button class="chip" id="myes" style="background:var(--btn);border-color:var(--btn);color:var(--btnink)">OK</button></div>
+  </div>
+</div>
+<script>
+const CATS={Yunoos:["Grocery","Snacks","Bills","Travel","Personal","Medicine"],Personal:["Grocery","Snacks","Bills","Personal","Travel","Medicine","Unwanted"],Business:["Stocks","Salaries","Rent","Bills"]};
+const KEY="family-expenses-v1";
+const COL={Groceries:"#16a34a",Grocery:"#16a34a",Medicine:"#dc2626",Bills:"#2563eb",Food:"#f59e0b",Snacks:"#db2777",Travel:"#7c3aed",Personal:"#0d9488","Stock / Supplies":"#0891b2",Salary:"#4d7c0f",Rent:"#92400e",Other:"#6b7280",Stocks:"#0891b2",Salaries:"#4d7c0f",Unwanted:"#475569"};
+const ICO={Groceries:"🛒",Grocery:"🛒",Medicine:"💊",Bills:"🧾",Food:"🍽️",Snacks:"🍿",Travel:"🚗",Personal:"👤","Stock / Supplies":"📦",Salary:"💼",Rent:"🏠",Other:"📌",Stocks:"📦",Salaries:"💼",Unwanted:"🗑️"};
+const ic=(c,sm)=>`<span class="ico${sm?" sm":""}" aria-hidden="true">${ICO[c]||"📌"}</span>`;
+const cc=c=>COL[c]||"#6b7280";
+const BIZ=["VPM","BR","Lushio"];let biz="",kind="Personal",flt="Personal",f2="",f3="",items=[],who=null,cat="",pick=null,pins={};
+try{pins=JSON.parse(localStorage.getItem("family-pins-v1")||"{}")}catch(e){pins={}}
+let extras=[];try{extras=JSON.parse(localStorage.getItem("family-users-v1")||"[]")}catch(e){extras=[]}
+const allUsers=()=>["Yunoos","Me",...extras];
+try{items=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){items=[]}
+items.forEach(i=>{if(i.p==="Dad")i.p="Yunoos"});let _ch=false;const _mg={Groceries:"Grocery","Stock / Supplies":"Stocks",Salary:"Salaries"};items.forEach(i=>{if(_mg[i.c]&&(i.p==="Yunoos"?i.c==="Groceries":true)){i.c=_mg[i.c];_ch=true}});if(_ch)save();if(pins.Dad){pins.Yunoos=pins.Dad;delete pins.Dad}
+const $=id=>document.getElementById(id);
+const inr=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+function save(){try{localStorage.setItem(KEY,JSON.stringify(items))}catch(e){}}
+function drawBiz(){
+  $("bizs").innerHTML=BIZ.map(b=>`<button class="chip" data-b="${b}" aria-pressed="${b===biz}">${b}</button>`).join("");
+  $("bizwrap").classList.toggle("hide",kind!=="Business");
+}
+function drawCats(){
+  $("cats").innerHTML=(who!=="Me"?CATS.Yunoos:CATS[kind]).map(c=>`<button class="chip" data-c="${c}" aria-pressed="${c===cat}">${ICO[c]||""} ${c}</button>`).join("");
+}
+function render(){
+  const now=new Date(),m=now.getMonth(),y=now.getFullYear();
+  $("mname").textContent=who+": "+now.toLocaleString("en-IN",{month:"long",year:"numeric"})+" total";
+  const mine=items.filter(i=>i.p===who);
+  const mo=mine.filter(i=>{const d=new Date(i.t);return d.getMonth()===m&&d.getFullYear()===y});
+  const sum=p=>mo.filter(i=>!p||i.p===p).reduce((a,i)=>a+i.a,0);
+  $("tAll").textContent=inr(sum());
+  const ks=k=>mo.filter(i=>(i.k||"Personal")===k).reduce((a,i)=>a+i.a,0);
+  $("tP").textContent=inr(ks("Personal"));$("tB").textContent=inr(ks("Business"));
+  const recent=mine.filter(i=>{const p=(i.k||"Personal")==="Personal";return flt==="All"||(flt==="Personal"?p&&(!f2||i.c===f2):!p&&(!f2||i.b===f2)&&(!f3||i.c===f3))}).sort((a,b)=>b.t-a.t).slice(0,30);
+  $("list").innerHTML=recent.length?recent.map(i=>{
+    const d=new Date(i.t).toLocaleDateString("en-IN",{day:"numeric",month:"short"});
+    const col=cc(i.c);
+    return `<div class="item">${ic(i.c)}<div class="info"><b>${i.c}</b><span>${i.b||i.k||"Personal"}, ${d}${i.n?" - "+esc(i.n):""}</span></div><div class="amtv">${inr(i.a)}</div>${i.t>=delLimit()?`<button class="del" data-id="${i.t}" aria-label="Delete">✕</button>`:""}</div>`}).join("")
+    :`<p class="empty">Nothing yet. Add your first expense above.</p>`;
+}
+function ask(msg,inp,okText){return new Promise(res=>{
+  const t=inp==="text";
+  $("mmsg").textContent=msg;$("minp").value="";$("minp").classList.toggle("hide",!inp);
+  $("minp").type=t?"text":"password";$("minp").maxLength=t?20:4;$("minp").inputMode=t?"text":"numeric";$("minp").classList.toggle("pin",!t);$("myes").textContent=okText||"OK";
+  $("modal").classList.remove("hide");if(inp)$("minp").focus();
+  const done=v=>{$("modal").classList.add("hide");$("myes").onclick=null;$("mno").onclick=null;res(v)};
+  $("myes").onclick=()=>done(inp?$("minp").value:true);
+  $("mno").onclick=()=>done(null);
+})}
+function delLimit(){const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate()-2).getTime()}
+function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+$("kinds").onclick=e=>{const b=e.target.closest("button");if(!b)return;kind=b.dataset.k;cat="";biz="";drawBiz();
+  document.querySelectorAll("#kinds .chip").forEach(x=>x.setAttribute("aria-pressed",x===b));drawCats()};
+function chipsHtml(arr,cur,a){return arr.map(v=>`<button class="chip" data-${a}="${v}" aria-pressed="${v===cur}">${v}</button>`).join("")}
+function drawFlt(){
+  $("flt").innerHTML=chipsHtml(["Personal","Business"],flt,"f");
+  $("flt2").innerHTML="";$("flt3").innerHTML="";
+}
+$("flt").onclick=e=>{const b=e.target.closest("button");if(!b)return;flt=b.dataset.f;f2="";f3="";drawFlt();render()};
+$("flt2").onclick=e=>{const b=e.target.closest("button");if(!b)return;f2=b.dataset.g==="All"?"":b.dataset.g;f3="";drawFlt();render()};
+$("flt3").onclick=e=>{const b=e.target.closest("button");if(!b)return;f3=b.dataset.h==="All"?"":b.dataset.h;drawFlt();render()};
+$("bizs").onclick=e=>{const b=e.target.closest("button");if(!b)return;biz=b.dataset.b;$("err2").textContent="";drawBiz()};
+$("cats").onclick=e=>{const b=e.target.closest("button");if(!b)return;cat=b.dataset.c;$("err2").textContent="";drawCats()};
+function step(n){$("step1").classList.toggle("hide",n!==1);$("step2").classList.toggle("hide",n!==2);
+  if(n===1){$("amt").focus()}}
+let curAmt=0;
+$("next").onclick=()=>{
+  const a=parseFloat($("amt").value);
+  if(!(a>0)){$("err").textContent="Enter an amount greater than 0.";$("amt").focus();return}
+  $("err").textContent="";curAmt=a;$("amtshow").textContent=inr(a);step(2);
+};
+$("amt").onkeydown=e=>{if(e.key==="Enter")$("next").click()};
+$("back").onclick=()=>step(1);
+$("add").onclick=()=>{
+  if(kind==="Business"&&!biz){$("err2").textContent="Please choose a business.";return}
+  if(!cat){$("err2").textContent="Please choose a reason.";return}
+  $("err2").textContent="";
+  items.push({t:Date.now(),p:who,k:kind,b:kind==="Business"?biz:"",a:curAmt,c:cat,n:$("note").value.trim()});
+  save();$("amt").value="";$("note").value="";cat="";biz="";drawCats();drawBiz();render();step(1);
+};
+$("list").onclick=async e=>{const b=e.target.closest(".del");if(!b)return;
+  if(Number(b.dataset.id)<delLimit()){render();return}
+  if(await ask("Delete this expense?",false,"Delete")){items=items.filter(i=>String(i.t)!==b.dataset.id);save();render()}};
+async function hash(t){
+  try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("fe:"+t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+  catch(e){let h=5381;for(const c of "fe:"+t)h=(h*33^c.charCodeAt(0))>>>0;return String(h)}}
+function savePins(){try{localStorage.setItem("family-pins-v1",JSON.stringify(pins))}catch(e){}}
+function showPin(){
+  const first=!pins[pick];
+  $("pinbox").classList.remove("hide");
+  $("pin2").classList.toggle("hide",!first);
+  $("pinlabel").textContent=first?"First time, "+pick+". Choose a 4-digit PIN":"Enter your 4-digit PIN";
+  $("go").textContent=first?"Save PIN and log in":"Log in";
+  $("forgot").classList.toggle("hide",first);
+  $("pin").value="";$("pin2").value="";$("lerr").textContent="";$("pin").focus();
+}
+function applyRole(){
+  const full=who==="Me";
+  [$("tP").parentElement,$("tB").parentElement,$("fltwrap"),$("kinds"),$("wq")].forEach(e=>e.classList.toggle("hide",!full));
+  if(!full){kind="Personal";flt="Personal";f2="";f3="";cat="";
+    document.querySelectorAll("#kinds .chip").forEach(x=>x.setAttribute("aria-pressed",x.dataset.k==="Personal"));}
+  cat="";
+  drawFlt();drawBiz();drawCats();
+}
+function enter(){
+  who=pick;try{localStorage.setItem("family-session-v1",who)}catch(e){}applyRole();$("login").classList.add("hide");$("app").classList.remove("hide");
+  $("as").textContent="Adding as "+who;render();$("step1").classList.remove("hide");$("step2").classList.add("hide");
+}
+function drawUsers(){$("lwho").innerHTML=allUsers().map(u=>`<button class="chip" data-p="${esc(u)}" aria-pressed="${u===pick}">${esc(u)}</button>`).join("")}
+$("adduser").onclick=async()=>{
+  $("uerr").textContent="";
+  let name=await ask("New user's name:","text","Add");
+  if(name===null)return;name=name.trim();
+  if(!name)return;
+  if(allUsers().some(u=>u.toLowerCase()===name.toLowerCase())){$("uerr").textContent="That name is already there.";return}
+  extras.push(name);try{localStorage.setItem("family-users-v1",JSON.stringify(extras))}catch(e){}
+  pick=name;drawUsers();showPin();
+};
+$("lwho").onclick=e=>{const b=e.target.closest("button");if(!b)return;pick=b.dataset.p;
+  document.querySelectorAll("#lwho .chip").forEach(x=>x.setAttribute("aria-pressed",x===b));showPin()};
+$("go").onclick=async()=>{
+  const a=$("pin").value;
+  if(!/^\d{4}$/.test(a)){$("lerr").textContent="PIN must be exactly 4 digits.";return}
+  if(!pins[pick]){
+    if(a!==$("pin2").value){$("lerr").textContent="The two PINs do not match.";return}
+    pins[pick]=await hash(a);savePins();enter();
+  }else if(await hash(a)===pins[pick]){enter()}
+  else{$("lerr").textContent="Wrong PIN. Try again.";$("pin").value=""}
+};
+$("forgot").onclick=async()=>{
+  const others=allUsers().filter(u=>u!==pick&&pins[u]);
+  if(others.length){
+    const o=await ask("To reset "+pick+"'s PIN, enter another family member's PIN:",true,"Reset");
+    if(o===null)return;
+    const h=await hash(o);
+    if(!others.some(u=>pins[u]===h)){$("lerr").textContent="That PIN is not correct, so the reset was not done.";return}
+  }else if(!(await ask("Reset "+pick+"'s PIN?",false,"Reset")))return;
+  delete pins[pick];savePins();showPin();
+};
+$("out").onclick=()=>{try{localStorage.removeItem("family-session-v1")}catch(e){}who=null;pick=null;$("mview").classList.add("hide");$("app").classList.add("hide");$("login").classList.remove("hide");
+  $("pinbox").classList.add("hide");document.querySelectorAll("#lwho .chip").forEach(x=>x.setAttribute("aria-pressed","false"))};
+let vy=0,vm=0,vmode="all";
+function drawMonth(){
+  const n=new Date();
+  const mine=items.filter(i=>{const d=new Date(i.t);return i.p===who&&d.getMonth()===vm&&d.getFullYear()===vy&&(vmode!=="biz"||i.k==="Business")});
+  $("vh").textContent=vmode==="biz"?"Business expenses":"Month details";
+  $("vtitle").textContent=new Date(vy,vm,1).toLocaleString("en-IN",{month:"long",year:"numeric"});
+  $("vtotal").textContent=inr(mine.reduce((a,i)=>a+i.a,0));
+  $("vnext").disabled=(vy===n.getFullYear()&&vm===n.getMonth());
+  const g={};
+  mine.forEach(i=>{const k=i.k==="Business"?(i.b||"Business"):"Personal";g[k]=g[k]||{};g[k][i.c]=(g[k][i.c]||0)+i.a});
+  const order=vmode==="biz"?[...BIZ,...(g.Business?["Business"]:[])]:["Personal","VPM","BR","Lushio","Business"].filter(k=>g[k]);
+  $("vbody").innerHTML=order.length?order.map(k=>{
+    const rows=Object.entries(g[k]||{}).sort((a,b)=>b[1]-a[1]),t=rows.reduce((a,r)=>a+r[1],0);
+    const head=who!=="Me"&&vmode!=="biz"?"":`<div class="gh"><span>${k}</span><span>${inr(t)}</span></div>`;
+    return head+rows.map(r=>`<div class="cr"><div class="l"><span>${ic(r[0],1)}${esc(r[0])}</span><b>${inr(r[1])}</b></div><div class="bar"><i style="width:${Math.round(r[1]/t*100)}%;background:${cc(r[0])}"></i></div></div>`).join("")+(rows.length?"":'<p class="empty">No expenses</p>')
+  }).join(""):'<p class="empty">No expenses in this month.</p>';
+}
+function openMonth(md){vmode=md||"all";const n=new Date();vy=n.getFullYear();vm=n.getMonth();drawMonth();
+  $("app").classList.add("hide");$("mview").classList.remove("hide");window.scrollTo(0,0)}
+function shift(d){vm+=d;if(vm<0){vm=11;vy--}if(vm>11){vm=0;vy++}drawMonth()}
+$("sumcard").onclick=()=>openMonth("all");
+const bb=$("tB").parentElement;bb.style.cursor="pointer";bb.setAttribute("role","button");bb.tabIndex=0;
+bb.onclick=e=>{e.stopPropagation();openMonth("biz")};
+bb.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();e.stopPropagation();openMonth("biz")}};
+$("sumcard").onkeydown=e=>{if(e.target===$("sumcard")&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openMonth("all")}};
+$("vprev").onclick=()=>shift(-1);$("vnext").onclick=()=>shift(1);
+$("vback").onclick=()=>{$("mview").classList.add("hide");$("app").classList.remove("hide");render()};
+drawUsers();drawCats();drawBiz();
+try{const v=localStorage.getItem("family-session-v1");if(allUsers().includes(v)&&pins[v]){pick=v;enter()}}catch(e){}
+</script>
+</body>
+</html>
